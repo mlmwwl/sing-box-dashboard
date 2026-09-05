@@ -15,6 +15,12 @@ export interface ServersState {
 const STORAGE_KEY = "servers";
 const LEGACY_STORAGE_KEY = "server";
 
+const DEFAULT_SERVER: { name: string; url: string; secret: string } = {
+  name: "My sing-box",
+  url: "http://127.0.0.1",
+  secret: "YOUR_SECRET",
+};
+
 export function createServerId(): string {
   if (typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
@@ -87,6 +93,17 @@ export function loadServersState(): ServersState {
   if (migrated) {
     saveServersState(migrated);
     return migrated;
+  }
+  if (DEFAULT_SERVER.url.trim() !== "") {
+    const server: Server = {
+      id: createServerId(),
+      name: DEFAULT_SERVER.name,
+      url: normalizeServerUrl(DEFAULT_SERVER.url),
+      secret: DEFAULT_SERVER.secret,
+    };
+    const initial: ServersState = { servers: [server], activeId: server.id };
+    saveServersState(initial);
+    return initial;
   }
   return { servers: [], activeId: null };
 }
